@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,90 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
     }
   ]);
   const [input, setInput] = useState('');
+  const [panelHeight, setPanelHeight] = useState(120); // Initial height showing header
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [startHeight, setStartHeight] = useState(0);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const maxHeight = window.innerHeight * 0.8;
+  const minHeight = 120;
+
+  // Touch handlers for mobile swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartY(e.touches[0].clientY);
+    setStartHeight(panelHeight);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = startY - currentY;
+    const newHeight = Math.max(minHeight, Math.min(maxHeight, startHeight + deltaY));
+    setPanelHeight(newHeight);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    
+    // Snap to positions
+    if (panelHeight < 200) {
+      setPanelHeight(minHeight);
+    } else if (panelHeight > maxHeight * 0.6) {
+      setPanelHeight(maxHeight);
+    } else {
+      setPanelHeight(maxHeight * 0.5);
+    }
+  };
+
+  // Mouse handlers for desktop
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartY(e.clientY);
+    setStartHeight(panelHeight);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      
+      const deltaY = startY - e.clientY;
+      const newHeight = Math.max(minHeight, Math.min(maxHeight, startHeight + deltaY));
+      setPanelHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      if (!isDragging) return;
+      setIsDragging(false);
+      
+      // Snap to positions
+      if (panelHeight < 200) {
+        setPanelHeight(minHeight);
+      } else if (panelHeight > maxHeight * 0.6) {
+        setPanelHeight(maxHeight);
+      } else {
+        setPanelHeight(maxHeight * 0.5);
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, startY, startHeight, panelHeight]);
+
+  // Reset height when panel opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setPanelHeight(minHeight);
+    }
+  }, [isOpen]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -88,71 +172,86 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
   return (
     <>
       {/* Background Blur Overlay */}
-      {isOpen && (
+      {isOpen && panelHeight > minHeight && (
         <div 
           className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm animate-fade-in"
-          onClick={onToggle}
+          onClick={() => {
+            setPanelHeight(minHeight);
+            onToggle();
+          }}
         />
       )}
 
-      {/* AI Assistant Toggle Button */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
-          onClick={onToggle}
-          className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground rounded-full p-4 shadow-glow"
-        >
-          <Bot className="w-6 h-6" />
-        </Button>
-      </div>
-
       {/* Bottom Panel */}
-      <div className={`
-        fixed bottom-0 left-0 right-0 z-40 transform transition-transform duration-300 ease-out
-        ${isOpen ? 'translate-y-0' : 'translate-y-full'}
-      `}>
-        <div className="bg-gradient-glass backdrop-blur-md border-t border-white/10">
-          <div className="max-w-4xl mx-auto p-6">
-            {/* Panel Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-primary rounded-xl">
-                  <Bot className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">AI Assistant</h3>
+      <div 
+        ref={panelRef}
+        className={`
+          fixed bottom-0 left-0 right-0 z-40 transform transition-all duration-300 ease-out
+          ${isOpen ? 'translate-y-0' : 'translate-y-full'}
+        `}
+        style={{ height: `${panelHeight}px` }}
+      >
+        <div className="bg-gradient-glass backdrop-blur-md border-t border-white/10 h-full flex flex-col">
+          {/* Drag Handle */}
+          <div 
+            className="flex justify-center py-2 cursor-grab active:cursor-grabbing touch-none"
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="w-10 h-1 bg-muted-foreground/30 rounded-full"></div>
+          </div>
+
+          {/* Panel Header */}
+          <div className="flex items-center justify-between px-6 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-primary rounded-xl">
+                <Bot className="w-5 h-5 text-primary-foreground" />
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onToggle}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ChevronDown className="w-5 h-5" />
-              </Button>
+              <h3 className="text-lg font-semibold text-foreground">AI Assistant</h3>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setPanelHeight(minHeight);
+                onToggle();
+              }}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </Button>
+          </div>
 
-            {/* Messages */}
-            <div className="h-64 overflow-y-auto mb-4 space-y-3 scroll-smooth">
-              {messages.map(message => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                >
+          {/* Messages - only show if panel is expanded */}
+          {panelHeight > minHeight + 50 && (
+            <div className="flex-1 overflow-hidden px-6">
+              <div className="h-full overflow-y-auto space-y-3 scroll-smooth pb-4">
+                {messages.map(message => (
                   <div
-                    className={`
-                      max-w-sm p-3 rounded-2xl text-sm
-                      ${message.isUser 
-                        ? 'bg-gradient-primary text-primary-foreground' 
-                        : 'bg-secondary/50 text-foreground border border-white/10'
-                      }
-                    `}
+                    key={message.id}
+                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    {message.text}
+                    <div
+                      className={`
+                        max-w-[80%] p-3 rounded-2xl text-sm
+                        ${message.isUser 
+                          ? 'bg-gradient-primary text-primary-foreground' 
+                          : 'bg-secondary/50 text-foreground border border-white/10'
+                        }
+                      `}
+                    >
+                      {message.text}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+          )}
 
-            {/* Input */}
+          {/* Input - always visible */}
+          <div className="p-6 pt-2">
             <div className="flex gap-3">
               <Input
                 value={input}
@@ -160,6 +259,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me about events or people nearby..."
                 className="flex-1 bg-secondary/50 border-white/20 text-foreground placeholder:text-muted-foreground"
+                onFocus={() => {
+                  if (panelHeight === minHeight) {
+                    setPanelHeight(maxHeight * 0.6);
+                  }
+                }}
               />
               <Button
                 onClick={handleSend}
