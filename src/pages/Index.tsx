@@ -1,12 +1,53 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState } from 'react';
+import Map, { Event } from '@/components/Map';
+import EventDetail from '@/components/EventDetail';
+import AIAssistant from '@/components/AIAssistant';
 
 const Index = () => {
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [highlightedEvents, setHighlightedEvents] = useState<string[]>([]);
+
+  const handleEventSelect = (event: Event) => {
+    setSelectedEvent(event);
+  };
+
+  const handleCloseEventDetail = () => {
+    setSelectedEvent(null);
+  };
+
+  const handleToggleAssistant = () => {
+    setIsAssistantOpen(!isAssistantOpen);
+  };
+
+  const handleEventHighlight = (eventIds: string[]) => {
+    setHighlightedEvents(eventIds);
+    // Clear highlights after 5 seconds
+    setTimeout(() => {
+      setHighlightedEvents([]);
+    }, 5000);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="h-screen w-full bg-background overflow-hidden">
+      {/* Main Map View */}
+      <Map 
+        onEventSelect={handleEventSelect}
+        highlightedEvents={highlightedEvents}
+      />
+
+      {/* Event Detail Modal */}
+      <EventDetail 
+        event={selectedEvent}
+        onClose={handleCloseEventDetail}
+      />
+
+      {/* AI Assistant */}
+      <AIAssistant 
+        isOpen={isAssistantOpen}
+        onToggle={handleToggleAssistant}
+        onEventHighlight={handleEventHighlight}
+      />
     </div>
   );
 };
