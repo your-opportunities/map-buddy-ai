@@ -86,25 +86,52 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40">
-      {/* Toggle Button */}
-      <div className="flex justify-center mb-2">
+    <>
+      {/* Background Blur Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm animate-fade-in"
+          onClick={onToggle}
+        />
+      )}
+
+      {/* AI Assistant Toggle Button */}
+      <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={onToggle}
-          className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground rounded-full p-3 shadow-glow"
+          className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground rounded-full p-4 shadow-glow"
         >
-          <Bot className="w-5 h-5 mr-2" />
-          AI Assistant
-          {isOpen ? <ChevronDown className="w-4 h-4 ml-2" /> : <ChevronUp className="w-4 h-4 ml-2" />}
+          <Bot className="w-6 h-6" />
         </Button>
       </div>
 
-      {/* Chat Panel */}
-      {isOpen && (
-        <div className="bg-gradient-glass backdrop-blur-md border-t border-white/10 animate-slide-up">
-          <div className="max-w-md mx-auto p-4">
+      {/* Bottom Panel */}
+      <div className={`
+        fixed bottom-0 left-0 right-0 z-40 transform transition-transform duration-300 ease-out
+        ${isOpen ? 'translate-y-0' : 'translate-y-full'}
+      `}>
+        <div className="bg-gradient-glass backdrop-blur-md border-t border-white/10">
+          <div className="max-w-4xl mx-auto p-6">
+            {/* Panel Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-primary rounded-xl">
+                  <Bot className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">AI Assistant</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggle}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </Button>
+            </div>
+
             {/* Messages */}
-            <div className="h-64 overflow-y-auto mb-4 space-y-3">
+            <div className="h-64 overflow-y-auto mb-4 space-y-3 scroll-smooth">
               {messages.map(message => (
                 <div
                   key={message.id}
@@ -112,7 +139,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
                 >
                   <div
                     className={`
-                      max-w-xs p-3 rounded-2xl text-sm
+                      max-w-sm p-3 rounded-2xl text-sm
                       ${message.isUser 
                         ? 'bg-gradient-primary text-primary-foreground' 
                         : 'bg-secondary/50 text-foreground border border-white/10'
@@ -126,7 +153,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
             </div>
 
             {/* Input */}
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -137,15 +164,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
               <Button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground"
+                className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground px-6"
               >
                 <Send className="w-4 h-4" />
               </Button>
             </div>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 

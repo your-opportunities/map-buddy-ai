@@ -15,6 +15,7 @@ interface Event {
 interface MapProps {
   onEventSelect: (event: Event) => void;
   highlightedEvents?: string[];
+  mapboxToken: string;
 }
 
 const mockEvents: Event[] = [
@@ -61,7 +62,7 @@ const mockEvents: Event[] = [
   }
 ];
 
-const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [] }) => {
+const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [], mapboxToken }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -70,8 +71,8 @@ const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [] }) => {
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    // Initialize map with demo token for now
-    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTVsNWhnaTcwMXZzMnFzN2hlcWg3Zm5mIn0.vJbG7Y1_dJJqA3QCPVQCIQ';
+    // Initialize map with provided token
+    mapboxgl.accessToken = mapboxToken;
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -167,6 +168,7 @@ const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [] }) => {
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-map-overlay" />
+      
       
       {/* Map controls overlay */}
       <div className="absolute top-4 right-4 flex flex-col gap-2">
