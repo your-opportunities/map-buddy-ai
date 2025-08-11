@@ -57,7 +57,7 @@ const Index = () => {
       />
 
       {/* Floating Action Buttons */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+      <div className="fixed bottom-20 right-6 z-50 flex flex-col gap-3">
         <Button
           onClick={handleToggleSearch}
           className="bg-gradient-secondary hover:bg-gradient-secondary/90 text-primary-foreground rounded-full p-4 shadow-glow"
