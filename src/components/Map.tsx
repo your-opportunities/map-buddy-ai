@@ -8,6 +8,7 @@ interface Event {
   type: 'event' | 'person' | 'popular';
   coordinates: [number, number];
   description: string;
+  source?: string;
   time?: string;
   attendees?: number;
 }
@@ -25,6 +26,7 @@ const mockEvents: Event[] = [
     type: 'event',
     coordinates: [-73.98, 40.75],
     description: 'Live jazz music under the stars with amazing city views',
+    source: 'https://t.me/nycjazzevents',
     time: '8:00 PM',
     attendees: 45
   },
@@ -33,7 +35,8 @@ const mockEvents: Event[] = [
     name: 'Sarah - Coffee Enthusiast',
     type: 'person',
     coordinates: [-73.985, 40.748],
-    description: 'Looking for coffee shop recommendations and travel buddies'
+    description: 'Looking for coffee shop recommendations and travel buddies',
+    source: 'https://facebook.com/coffeeenthusiasts'
   },
   {
     id: '3',
@@ -41,6 +44,7 @@ const mockEvents: Event[] = [
     type: 'popular',
     coordinates: [-73.977, 40.752],
     description: 'Exclusive preview of contemporary digital art collection',
+    source: 'https://www.eventbrite.com/artgallery',
     time: '7:00 PM',
     attendees: 120
   },
@@ -50,6 +54,7 @@ const mockEvents: Event[] = [
     type: 'event',
     coordinates: [-73.983, 40.746],
     description: 'Street food from around the world in one location',
+    source: 'https://t.me/nycfoodtrucks',
     time: '12:00 PM - 9:00 PM',
     attendees: 200
   },
@@ -58,7 +63,8 @@ const mockEvents: Event[] = [
     name: 'Mike - Photographer',
     type: 'person',
     coordinates: [-73.979, 40.754],
-    description: 'Street photographer looking to collaborate on projects'
+    description: 'Street photographer looking to collaborate on projects',
+    source: 'https://instagram.com/mikephotographer'
   },
   {
     id: '6',
@@ -66,6 +72,7 @@ const mockEvents: Event[] = [
     type: 'event',
     coordinates: [-73.987, 40.744],
     description: 'Weekly networking event for developers and entrepreneurs',
+    source: 'https://meetup.com/nyctech',
     time: '7:00 PM',
     attendees: 85
   },
@@ -74,7 +81,8 @@ const mockEvents: Event[] = [
     name: 'Anna - Fitness Trainer',
     type: 'person',
     coordinates: [-73.974, 40.749],
-    description: 'Personal trainer offering outdoor workout sessions'
+    description: 'Personal trainer offering outdoor workout sessions',
+    source: 'https://facebook.com/annafit'
   },
   {
     id: '8',
@@ -82,6 +90,7 @@ const mockEvents: Event[] = [
     type: 'event',
     coordinates: [-73.982, 40.757],
     description: 'Free outdoor yoga class for all skill levels',
+    source: 'https://eventbrite.com/yogapark',
     time: '7:00 AM',
     attendees: 30
   },
@@ -90,7 +99,8 @@ const mockEvents: Event[] = [
     name: 'David - Tour Guide',
     type: 'person',
     coordinates: [-73.976, 40.743],
-    description: 'Local expert specializing in hidden city gems'
+    description: 'Local expert specializing in hidden city gems',
+    source: 'https://tripadvisor.com/davidtours'
   },
   {
     id: '10',
@@ -98,6 +108,7 @@ const mockEvents: Event[] = [
     type: 'popular',
     coordinates: [-73.981, 40.751],
     description: 'Local vendors selling handmade crafts and street food',
+    source: 'https://t.me/nightmarketsnyc',
     time: '6:00 PM - 11:00 PM',
     attendees: 150
   },
@@ -106,7 +117,8 @@ const mockEvents: Event[] = [
     name: 'Emma - Book Club',
     type: 'person',
     coordinates: [-73.984, 40.756],
-    description: 'Literature enthusiast organizing weekly book discussions'
+    description: 'Literature enthusiast organizing weekly book discussions',
+    source: 'https://goodreads.com/emmabookclub'
   },
   {
     id: '12',
@@ -114,6 +126,7 @@ const mockEvents: Event[] = [
     type: 'event',
     coordinates: [-73.978, 40.747],
     description: 'Open mic night for musicians and music lovers',
+    source: 'https://facebook.com/events/musicjam',
     time: '8:30 PM',
     attendees: 65
   }

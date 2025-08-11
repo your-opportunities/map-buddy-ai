@@ -18,6 +18,7 @@ const mockEvents: Event[] = [
     type: 'event',
     coordinates: [-73.98, 40.75],
     description: 'Live jazz music under the stars with amazing city views',
+    source: 'https://t.me/nycjazzevents',
     time: '8:00 PM',
     attendees: 45
   },
@@ -26,7 +27,8 @@ const mockEvents: Event[] = [
     name: 'Sarah - Coffee Enthusiast',
     type: 'person',
     coordinates: [-73.985, 40.748],
-    description: 'Looking for coffee shop recommendations and travel buddies'
+    description: 'Looking for coffee shop recommendations and travel buddies',
+    source: 'https://facebook.com/coffeeenthusiasts'
   },
   {
     id: '3',
@@ -34,6 +36,7 @@ const mockEvents: Event[] = [
     type: 'popular',
     coordinates: [-73.977, 40.752],
     description: 'Exclusive preview of contemporary digital art collection',
+    source: 'https://www.eventbrite.com/artgallery',
     time: '7:00 PM',
     attendees: 120
   },
@@ -43,6 +46,7 @@ const mockEvents: Event[] = [
     type: 'event',
     coordinates: [-73.983, 40.746],
     description: 'Street food from around the world in one location',
+    source: 'https://t.me/nycfoodtrucks',
     time: '12:00 PM - 9:00 PM',
     attendees: 200
   },
@@ -51,7 +55,18 @@ const mockEvents: Event[] = [
     name: 'Mike - Photographer',
     type: 'person',
     coordinates: [-73.979, 40.754],
-    description: 'Street photographer looking to collaborate on projects'
+    description: 'Street photographer looking to collaborate on projects',
+    source: 'https://instagram.com/mikephotographer'
+  },
+  {
+    id: '6',
+    name: 'Tech Meetup',
+    type: 'event',
+    coordinates: [-73.987, 40.744],
+    description: 'Weekly networking event for developers and entrepreneurs',
+    source: 'https://meetup.com/nyctech',
+    time: '7:00 PM',
+    attendees: 85
   }
 ];
 
@@ -64,6 +79,13 @@ const SearchMode: React.FC<SearchModeProps> = ({ isOpen, onClose, onEventSelect 
     { id: 'event', label: 'Events', color: 'bg-marker-event' },
     { id: 'person', label: 'People', color: 'bg-marker-person' },
     { id: 'popular', label: 'Popular', color: 'bg-marker-popular' },
+    { id: 'today', label: 'Today', color: 'bg-yellow-500' },
+    { id: 'free', label: 'Free', color: 'bg-green-500' },
+    { id: 'paid', label: 'Paid', color: 'bg-blue-500' },
+    { id: 'music', label: 'Music', color: 'bg-purple-500' },
+    { id: 'food', label: 'Food', color: 'bg-orange-500' },
+    { id: 'tech', label: 'Tech', color: 'bg-cyan-500' },
+    { id: 'art', label: 'Art', color: 'bg-pink-500' },
   ];
 
   const toggleFilter = (filterId: string) => {

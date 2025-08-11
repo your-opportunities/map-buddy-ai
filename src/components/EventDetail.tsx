@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, MapPin, Clock, Users, User } from 'lucide-react';
+import { X, MapPin, Clock, Users, User, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Event } from './Map';
 
@@ -79,6 +79,19 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
                 {event.coordinates[1].toFixed(3)}, {event.coordinates[0].toFixed(3)}
               </span>
             </div>
+            {event.source && (
+              <div className="flex items-center gap-3 text-sm">
+                <ExternalLink className="w-4 h-4 text-primary" />
+                <a 
+                  href={event.source} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:text-primary/80 transition-colors underline"
+                >
+                  View Source
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

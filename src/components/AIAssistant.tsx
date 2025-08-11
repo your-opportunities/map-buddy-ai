@@ -14,9 +14,10 @@ interface AIAssistantProps {
   isOpen: boolean;
   onToggle: () => void;
   onEventHighlight: (eventIds: string[]) => void;
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
-const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHighlight }) => {
+const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHighlight, onExpandedChange }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -113,9 +114,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
   useEffect(() => {
     if (isOpen) {
       // If panel is being opened, expand it to show interface
-      setPanelHeight(expandedMinHeight);
+      setPanelHeight(maxHeight * 0.7); // Make it bigger
     }
   }, [isOpen]);
+
+  // Notify parent about expanded state
+  useEffect(() => {
+    const expanded = panelHeight > expandedMinHeight;
+    onExpandedChange?.(expanded);
+  }, [panelHeight, onExpandedChange]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -178,12 +185,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
   return (
     <>
       {/* Background Blur Overlay */}
-      {isOpen && panelHeight > minHeight && (
+      {isOpen && panelHeight > expandedMinHeight && (
         <div 
           className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm animate-fade-in"
           onClick={() => {
             setPanelHeight(minHeight);
-            onToggle();
           }}
         />
       )}

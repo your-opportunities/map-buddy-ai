@@ -11,6 +11,7 @@ const Index = () => {
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+  const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [highlightedEvents, setHighlightedEvents] = useState<string[]>([]);
 
@@ -56,21 +57,23 @@ const Index = () => {
         mapboxToken={mapboxToken}
       />
 
-      {/* Floating Action Buttons */}
-      <div className="fixed bottom-20 right-6 z-50 flex flex-col gap-3">
-        <Button
-          onClick={handleToggleSearch}
-          className="bg-gradient-secondary hover:bg-gradient-secondary/90 text-primary-foreground rounded-full p-4 shadow-glow"
-        >
-          <Search className="w-6 h-6" />
-        </Button>
-        <Button
-          onClick={handleToggleAssistant}
-          className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground rounded-full p-4 shadow-glow"
-        >
-          <Bot className="w-6 h-6" />
-        </Button>
-      </div>
+      {/* Floating Action Buttons - hide when AI assistant is expanded */}
+      {!isAssistantExpanded && (
+        <div className="fixed bottom-20 right-6 z-50 flex flex-col gap-3">
+          <Button
+            onClick={handleToggleSearch}
+            className="bg-gradient-secondary hover:bg-gradient-secondary/90 text-primary-foreground rounded-full p-4 shadow-glow"
+          >
+            <Search className="w-6 h-6" />
+          </Button>
+          <Button
+            onClick={handleToggleAssistant}
+            className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground rounded-full p-4 shadow-glow"
+          >
+            <Bot className="w-6 h-6" />
+          </Button>
+        </div>
+      )}
 
       {/* Event Detail Modal */}
       <EventDetail 
@@ -90,6 +93,7 @@ const Index = () => {
         isOpen={isAssistantOpen}
         onToggle={handleToggleAssistant}
         onEventHighlight={handleEventHighlight}
+        onExpandedChange={setIsAssistantExpanded}
       />
     </div>
   );
