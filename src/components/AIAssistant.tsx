@@ -26,13 +26,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
     }
   ]);
   const [input, setInput] = useState('');
-  const [panelHeight, setPanelHeight] = useState(120); // Initial height showing header
+  const [panelHeight, setPanelHeight] = useState(140); // Initial height showing header and hint
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [startHeight, setStartHeight] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
   const maxHeight = window.innerHeight * 0.8;
-  const minHeight = 120;
+  const minHeight = 140;
 
   // Touch handlers for mobile swipe
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -273,6 +273,21 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
                 <Send className="w-4 h-4" />
               </Button>
             </div>
+            
+            {/* Hints - show when collapsed */}
+            {panelHeight <= minHeight + 50 && (
+              <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+                {['Find jazz events', 'Show photographers', 'Food trucks nearby', 'Popular spots'].map((hint) => (
+                  <button
+                    key={hint}
+                    onClick={() => setInput(hint)}
+                    className="flex-shrink-0 px-3 py-1.5 text-xs bg-secondary/30 text-muted-foreground rounded-full border border-white/10 hover:bg-secondary/50 transition-colors"
+                  >
+                    {hint}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@ import TokenInput from '@/components/TokenInput';
 const Index = () => {
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [highlightedEvents, setHighlightedEvents] = useState<string[]>([]);
 

@@ -59,6 +59,63 @@ const mockEvents: Event[] = [
     type: 'person',
     coordinates: [-73.979, 40.754],
     description: 'Street photographer looking to collaborate on projects'
+  },
+  {
+    id: '6',
+    name: 'Tech Meetup',
+    type: 'event',
+    coordinates: [-73.987, 40.744],
+    description: 'Weekly networking event for developers and entrepreneurs',
+    time: '7:00 PM',
+    attendees: 85
+  },
+  {
+    id: '7',
+    name: 'Anna - Fitness Trainer',
+    type: 'person',
+    coordinates: [-73.974, 40.749],
+    description: 'Personal trainer offering outdoor workout sessions'
+  },
+  {
+    id: '8',
+    name: 'Yoga in the Park',
+    type: 'event',
+    coordinates: [-73.982, 40.757],
+    description: 'Free outdoor yoga class for all skill levels',
+    time: '7:00 AM',
+    attendees: 30
+  },
+  {
+    id: '9',
+    name: 'David - Tour Guide',
+    type: 'person',
+    coordinates: [-73.976, 40.743],
+    description: 'Local expert specializing in hidden city gems'
+  },
+  {
+    id: '10',
+    name: 'Night Market',
+    type: 'popular',
+    coordinates: [-73.981, 40.751],
+    description: 'Local vendors selling handmade crafts and street food',
+    time: '6:00 PM - 11:00 PM',
+    attendees: 150
+  },
+  {
+    id: '11',
+    name: 'Emma - Book Club',
+    type: 'person',
+    coordinates: [-73.984, 40.756],
+    description: 'Literature enthusiast organizing weekly book discussions'
+  },
+  {
+    id: '12',
+    name: 'Live Music Jam',
+    type: 'event',
+    coordinates: [-73.978, 40.747],
+    description: 'Open mic night for musicians and music lovers',
+    time: '8:30 PM',
+    attendees: 65
   }
 ];
 
