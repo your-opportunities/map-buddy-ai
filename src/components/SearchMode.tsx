@@ -33,7 +33,7 @@ const mockEvents: Event[] = [
   {
     id: '3',
     name: 'Art Gallery Opening',
-    type: 'popular',
+    type: 'event',
     coordinates: [-73.977, 40.752],
     description: 'Exclusive preview of contemporary digital art collection',
     source: 'https://www.eventbrite.com/artgallery',
@@ -78,7 +78,6 @@ const SearchMode: React.FC<SearchModeProps> = ({ isOpen, onClose, onEventSelect 
   const filters = [
     { id: 'event', label: 'Events', color: 'bg-marker-event' },
     { id: 'person', label: 'People', color: 'bg-marker-person' },
-    { id: 'popular', label: 'Popular', color: 'bg-marker-popular' },
     { id: 'today', label: 'Today', color: 'bg-yellow-500' },
     { id: 'free', label: 'Free', color: 'bg-green-500' },
     { id: 'paid', label: 'Paid', color: 'bg-blue-500' },
@@ -107,8 +106,6 @@ const SearchMode: React.FC<SearchModeProps> = ({ isOpen, onClose, onEventSelect 
     switch (type) {
       case 'person':
         return <User className="w-4 h-4" />;
-      case 'popular':
-        return <Users className="w-4 h-4" />;
       default:
         return <MapPin className="w-4 h-4" />;
     }
@@ -194,8 +191,7 @@ const SearchMode: React.FC<SearchModeProps> = ({ isOpen, onClose, onEventSelect 
                   <div className={`
                     p-2 rounded-xl flex-shrink-0
                     ${event.type === 'event' ? 'bg-marker-event/20 text-marker-event' : 
-                      event.type === 'person' ? 'bg-marker-person/20 text-marker-person' : 
-                      'bg-marker-popular/20 text-marker-popular'}
+                      'bg-marker-person/20 text-marker-person'}
                   `}>
                     {getEventIcon(event.type)}
                   </div>
