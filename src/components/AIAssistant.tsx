@@ -21,12 +21,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi! I'm your AI assistant. I can help you find events and people nearby. Try asking me something like 'Find jazz events tonight' or 'Show me photographers in the area'.",
+      text: "Hi there! 👋 I'm your AI assistant. Just tell me what you're in the mood for - like 'I'm bored tonight', 'I like jazz', or 'looking for food events' and I'll suggest some great options nearby!",
       isUser: false,
       timestamp: new Date()
     }
   ]);
   const [input, setInput] = useState('');
+  const [highlightedEvents, setHighlightedEvents] = useState<string[]>([]);
 
   // Notify parent about expanded state
   useEffect(() => {
@@ -45,30 +46,110 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
 
     setMessages(prev => [...prev, userMessage]);
 
-    // Simulate AI response with event highlighting
+    // Simulate contextual AI response
     setTimeout(() => {
       let response = '';
       let highlightIds: string[] = [];
 
       const inputLower = input.toLowerCase();
       
-      if (inputLower.includes('jazz') || inputLower.includes('music')) {
-        response = "I found a Jazz event for you! 🎵 There's a Rooftop Jazz Night happening tonight at 8 PM with 45 people attending. Check it out on the map!";
+      // Context understanding - infer meaning
+      if (inputLower.includes('bored') || inputLower.includes('tonight') || inputLower.includes('fun') || inputLower.includes('do')) {
+        response = `Got it, you're looking for some fun tonight 🎉 Here are a few options:
+
+🎶 **Jazz Night at Central Club**
+Live performance with local artists
+*See details*
+
+🎬 **Open-air Movie Night**
+Classic films under the stars
+*See details*
+
+🍔 **Street Food Festival**
+Food trucks from around the world
+*See details*
+
+Want me to show these on the map and highlight them?`;
+        highlightIds = ['1', '3', '4'];
+      } else if (inputLower.includes('jazz') || inputLower.includes('music') || inputLower.includes('concert')) {
+        response = `Perfect, you're into music tonight 🎶 Here's what's happening:
+
+🎵 **Rooftop Jazz Night**
+Live band, great atmosphere, starts 8 PM
+*See details*
+
+🎼 **Classical Concert**
+Symphony orchestra performance
+*See details*
+
+🎸 **Live Rock Show**
+Local bands, energetic crowd
+*See details*
+
+Want me to show these on the map and highlight them?`;
         highlightIds = ['1'];
-      } else if (inputLower.includes('photographer') || inputLower.includes('photo')) {
-        response = "I found a photographer near you! 📸 Mike is a street photographer looking to collaborate on projects. He's just a few blocks away!";
-        highlightIds = ['5'];
-      } else if (inputLower.includes('food') || inputLower.includes('eat')) {
-        response = "Perfect timing! 🍕 There's a Food Truck Festival happening now with food from around the world. Over 200 people are there!";
+      } else if (inputLower.includes('food') || inputLower.includes('eat') || inputLower.includes('hungry') || inputLower.includes('restaurant')) {
+        response = `Sounds like you're hungry! 🍽️ Here are some great food events:
+
+🍕 **Food Truck Festival**
+International cuisine, live music
+*See details*
+
+🍜 **Night Market**
+Street food vendors, local specialties
+*See details*
+
+🥘 **Cooking Workshop**
+Learn to make authentic dishes
+*See details*
+
+Want me to show these on the map and highlight them?`;
         highlightIds = ['4'];
-      } else if (inputLower.includes('popular') || inputLower.includes('trending')) {
-        response = "The hottest spot right now is the Art Gallery Opening! 🎨 120 people are checking out the new contemporary digital art collection.";
+      } else if (inputLower.includes('art') || inputLower.includes('gallery') || inputLower.includes('creative') || inputLower.includes('culture')) {
+        response = `Great taste in culture! 🎨 Check out these artistic events:
+
+🖼️ **Art Gallery Opening**
+Contemporary digital art collection
+*See details*
+
+🎭 **Theater Performance**
+Local drama group presents classic play
+*See details*
+
+📸 **Photography Exhibition**
+Street photography showcase
+*See details*
+
+Want me to show these on the map and highlight them?`;
         highlightIds = ['3'];
-      } else if (inputLower.includes('coffee')) {
-        response = "I found Sarah, a coffee enthusiast who's looking for coffee shop recommendations! ☕ She might have some great suggestions for you.";
+      } else if (inputLower.includes('tech') || inputLower.includes('meetup') || inputLower.includes('network') || inputLower.includes('startup')) {
+        response = `Perfect for networking! 💻 Here are some tech events:
+
+🚀 **Startup Pitch Night**
+Local entrepreneurs present ideas
+*See details*
+
+💡 **Tech Meetup**
+JavaScript developers gathering
+*See details*
+
+🤖 **AI Workshop**
+Learn about machine learning
+*See details*
+
+Want me to show these on the map and highlight them?`;
         highlightIds = ['2'];
       } else {
-        response = "I can help you find specific events or people! Try asking about 'jazz music', 'photographers', 'food events', or 'popular spots' to see what's happening nearby.";
+        response = `I can help you find events based on what you're interested in! Just tell me what you're in the mood for - like "I'm bored tonight", "I like jazz", or "looking for food events".
+
+Here are some popular options right now:
+
+🎵 **Jazz Night** - Live music tonight
+🍔 **Food Festival** - Street food from around the world
+🎨 **Art Gallery** - New contemporary exhibition
+
+Want me to show these on the map?`;
+        highlightIds = ['1', '4', '3'];
       }
 
       const aiMessage: Message = {
@@ -79,6 +160,19 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Add interactive buttons after AI response
+      setTimeout(() => {
+        const buttonMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          text: "INTERACTIVE_BUTTONS",
+          isUser: false,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, buttonMessage]);
+      }, 500);
+      
+      setHighlightedEvents(highlightIds);
       onEventHighlight(highlightIds);
     }, 1000);
 
@@ -137,17 +231,47 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
                   key={message.id}
                   className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div
-                    className={`
-                      max-w-[80%] p-3 rounded-2xl text-sm
-                      ${message.isUser 
-                        ? 'bg-gradient-primary text-primary-foreground' 
-                        : 'bg-secondary/50 text-foreground border border-white/10'
-                      }
-                    `}
-                  >
-                    {message.text}
-                  </div>
+                  {message.text === "INTERACTIVE_BUTTONS" ? (
+                    <div className="flex flex-col gap-2 max-w-[80%]">
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          onClick={() => onEventHighlight(highlightedEvents)}
+                          size="sm"
+                          className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground text-xs px-3 py-1"
+                        >
+                          🗺️ Show on Map
+                        </Button>
+                        <Button
+                          onClick={() => onEventHighlight([highlightedEvents[0]])}
+                          size="sm"
+                          variant="outline"
+                          className="text-xs px-3 py-1 border-white/20"
+                        >
+                          ⭐ Highlight Closest Event
+                        </Button>
+                        <Button
+                          onClick={() => setInput("Show me more options")}
+                          size="sm"
+                          variant="outline"
+                          className="text-xs px-3 py-1 border-white/20"
+                        >
+                          🔄 See More Options
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className={`
+                        max-w-[80%] p-3 rounded-2xl text-sm whitespace-pre-line
+                        ${message.isUser 
+                          ? 'bg-gradient-primary text-primary-foreground' 
+                          : 'bg-secondary/50 text-foreground border border-white/10'
+                        }
+                      `}
+                    >
+                      {message.text}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -174,7 +298,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
             
             {/* Hints */}
             <div className="flex gap-2 overflow-x-auto pb-1">
-              {['Find jazz events', 'Show photographers', 'Food trucks nearby', 'Tech meetups'].map((hint) => (
+              {["I'm bored tonight", "I like jazz", "Looking for food", "Tech meetups"].map((hint) => (
                 <button
                   key={hint}
                   onClick={() => setInput(hint)}
