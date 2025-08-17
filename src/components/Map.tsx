@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { mockEvents } from '@/lib/events';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface Event {
   id: string;
@@ -22,21 +27,87 @@ interface MapProps {
   onEventSelect: (event: Event) => void;
   highlightedEvents?: string[];
   mapboxToken: string;
+  onReturnToHome?: () => void;
 }
 
 // Events data is now imported from @/lib/events
 
-const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [], mapboxToken }) => {
+const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [], mapboxToken, onReturnToHome }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const onEventSelectRef = useRef(onEventSelect);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   // Update the ref when onEventSelect changes
   useEffect(() => {
     onEventSelectRef.current = onEventSelect;
   }, [onEventSelect]);
+
+  // Filter events based on selected date
+  const getFilteredEvents = () => {
+    if (!selectedDate) return mockEvents;
+    
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const thisWeekend = new Date(today);
+    const daysUntilWeekend = 6 - today.getDay(); // Saturday is 6
+    thisWeekend.setDate(today.getDate() + daysUntilWeekend);
+    
+    return mockEvents.filter(event => {
+      if (!event.date) return true; // Show events without dates
+      
+      const eventDate = event.date.toLowerCase();
+      
+      // Check if event is for today
+      if (eventDate === 'today' || eventDate === 'daily') {
+        return true;
+      }
+      
+      // Check if event is for tomorrow
+      if (eventDate === 'tomorrow') {
+        return selectedDate.toDateString() === tomorrow.toDateString();
+      }
+      
+      // Check if event is for this weekend
+      if (eventDate === 'this weekend' || eventDate === 'friday & saturday') {
+        const selectedDay = selectedDate.getDay();
+        return selectedDay === 5 || selectedDay === 6; // Friday or Saturday
+      }
+      
+      // Check for specific days of the week
+      if (eventDate.includes('wednesday')) {
+        return selectedDate.getDay() === 3; // Wednesday
+      }
+      if (eventDate.includes('thursday')) {
+        return selectedDate.getDay() === 4; // Thursday
+      }
+      if (eventDate.includes('friday')) {
+        return selectedDate.getDay() === 5; // Friday
+      }
+      if (eventDate.includes('saturday')) {
+        return selectedDate.getDay() === 6; // Saturday
+      }
+      
+      // For events that happen every week on specific days
+      if (eventDate.includes('every')) {
+        const dayMatch = eventDate.match(/every\s+(\w+)/i);
+        if (dayMatch) {
+          const dayName = dayMatch[1].toLowerCase();
+          const dayMap: { [key: string]: number } = {
+            'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4,
+            'friday': 5, 'saturday': 6, 'sunday': 0
+          };
+          return selectedDate.getDay() === dayMap[dayName];
+        }
+      }
+      
+      return true; // Show events that don't match specific patterns
+    });
+  };
 
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
@@ -91,7 +162,7 @@ const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [], mapbox
     };
   }, [mapboxToken]);
 
-  // Create markers when map is loaded
+  // Create markers when map is loaded or date changes
   useEffect(() => {
     if (!mapLoaded || !map.current) return;
 
@@ -99,8 +170,11 @@ const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [], mapbox
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
+    // Get filtered events based on selected date
+    const filteredEvents = getFilteredEvents();
+
     // Add event markers
-    mockEvents.forEach((event) => {
+    filteredEvents.forEach((event) => {
       const markerElement = document.createElement('div');
       
       // Create marker with proper UX design - all same size
@@ -160,7 +234,7 @@ const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [], mapbox
       (marker as any).eventId = event.id;
       (marker as any).element = markerElement;
     });
-  }, [mapLoaded]); // Only recreate when map loads
+  }, [mapLoaded, selectedDate]); // Recreate markers when map loads or date changes
 
   // Update marker highlighting without affecting position
   useEffect(() => {
@@ -194,6 +268,43 @@ const Map: React.FC<MapProps> = ({ onEventSelect, highlightedEvents = [], mapbox
       <div ref={mapContainer} className="absolute inset-0" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-map-overlay" />
       
+      {/* Return to Home Button */}
+      {onReturnToHome && (
+        <div className="absolute top-4 left-4">
+          <button
+            onClick={onReturnToHome}
+            className="bg-gradient-glass backdrop-blur-md rounded-xl p-3 border border-white/10 shadow-glass hover:border-white/20 transition-all duration-300 hover:scale-105"
+          >
+            <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Date Picker */}
+      <div className="absolute top-4 left-20">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="bg-gradient-glass backdrop-blur-md border border-white/10 shadow-glass hover:border-white/20 transition-all duration-300"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
       {/* Map controls overlay */}
       <div className="absolute top-4 right-4 flex flex-col gap-2">
         <div className="bg-gradient-glass backdrop-blur-md rounded-xl p-2 shadow-glass">

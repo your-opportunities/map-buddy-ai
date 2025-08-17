@@ -6,6 +6,8 @@ import EventDetail from '@/components/EventDetail';
 import AIAssistant from '@/components/AIAssistant';
 import SearchMode from '@/components/SearchMode';
 import TokenInput from '@/components/TokenInput';
+import ViewModeSelector from '@/components/ViewModeSelector';
+import ListView from '@/components/ListView';
 import { getEventById } from '@/lib/events';
 
 const Index = () => {
@@ -16,13 +18,23 @@ const Index = () => {
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [highlightedEvents, setHighlightedEvents] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'map' | 'list' | null>(null);
+  const [hasShownSelector, setHasShownSelector] = useState(false);
 
-  // Load token from localStorage on component mount
+  // Load token and view mode from localStorage on component mount
   useEffect(() => {
     const savedToken = localStorage.getItem('mapboxToken');
+    const savedViewMode = localStorage.getItem('viewMode') as 'map' | 'list' | null;
+    
     if (savedToken) {
       setMapboxToken(savedToken);
     }
+    
+    if (savedViewMode) {
+      setViewMode(savedViewMode);
+      setHasShownSelector(true);
+    }
+    
     setIsTokenLoaded(true);
   }, []);
 
@@ -63,6 +75,23 @@ const Index = () => {
     }
   };
 
+  const handleViewModeSelect = (mode: 'map' | 'list') => {
+    setViewMode(mode);
+    setHasShownSelector(true);
+    localStorage.setItem('viewMode', mode);
+  };
+
+  const handleSwitchToMap = () => {
+    setViewMode('map');
+    localStorage.setItem('viewMode', 'map');
+  };
+
+  const handleReturnToHome = () => {
+    setViewMode(null);
+    setHasShownSelector(false);
+    localStorage.removeItem('viewMode');
+  };
+
   // Show token input if no token is provided and token loading is complete
   if (!mapboxToken && isTokenLoaded) {
     return <TokenInput onTokenSubmit={handleTokenSubmit} />;
@@ -80,6 +109,29 @@ const Index = () => {
     );
   }
 
+  // Show view mode selector if user hasn't chosen a mode yet
+  if (!hasShownSelector) {
+    return <ViewModeSelector onSelectMode={handleViewModeSelect} />;
+  }
+
+  // Show list view if user selected list mode
+  if (viewMode === 'list') {
+    return (
+      <>
+        <ListView 
+          onEventSelect={handleEventSelect}
+          onSwitchToMap={handleSwitchToMap}
+          onReturnToHome={handleReturnToHome}
+        />
+        <EventDetail 
+          event={selectedEvent}
+          onClose={handleCloseEventDetail}
+        />
+      </>
+    );
+  }
+
+  // Show map view (default)
   return (
     <div className="h-screen w-full bg-background overflow-hidden relative">
       {/* Main Map View */}
@@ -87,6 +139,7 @@ const Index = () => {
         onEventSelect={handleEventSelect}
         highlightedEvents={highlightedEvents}
         mapboxToken={mapboxToken}
+        onReturnToHome={handleReturnToHome}
       />
 
       {/* Floating Action Buttons - hide when AI assistant is expanded */}
