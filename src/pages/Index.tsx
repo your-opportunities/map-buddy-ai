@@ -8,6 +8,7 @@ import SearchMode from '@/components/SearchMode';
 import TokenInput from '@/components/TokenInput';
 import ViewModeSelector from '@/components/ViewModeSelector';
 import ListView from '@/components/ListView';
+import LoadingScreen from '@/components/LoadingScreen';
 import { getEventById } from '@/lib/events';
 
 const Index = () => {
@@ -20,11 +21,13 @@ const Index = () => {
   const [highlightedEvents, setHighlightedEvents] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'map' | 'list' | null>(null);
   const [hasShownSelector, setHasShownSelector] = useState(false);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
 
   // Load token and view mode from localStorage on component mount
   useEffect(() => {
     const savedToken = localStorage.getItem('mapboxToken');
     const savedViewMode = localStorage.getItem('viewMode') as 'map' | 'list' | null;
+    const hasSeenLoading = localStorage.getItem('hasSeenLoading');
     
     if (savedToken) {
       setMapboxToken(savedToken);
@@ -35,8 +38,20 @@ const Index = () => {
       setHasShownSelector(true);
     }
     
+    // Skip loading screen if user has seen it before
+    if (hasSeenLoading) {
+      setShowLoadingScreen(false);
+    }
+    
     setIsTokenLoaded(true);
   }, []);
+
+  const handleLoadingComplete = () => {
+    setShowLoadingScreen(false);
+    localStorage.setItem('hasSeenLoading', 'true');
+  };
+
+
 
   const handleEventSelect = (event: Event) => {
     setSelectedEvent(event);
@@ -92,6 +107,11 @@ const Index = () => {
     localStorage.removeItem('viewMode');
   };
 
+  // Show loading screen on first visit
+  if (showLoadingScreen) {
+    return <LoadingScreen onComplete={handleLoadingComplete} />;
+  }
+
   // Show token input if no token is provided and token loading is complete
   if (!mapboxToken && isTokenLoaded) {
     return <TokenInput onTokenSubmit={handleTokenSubmit} />;
@@ -111,7 +131,7 @@ const Index = () => {
 
   // Show view mode selector if user hasn't chosen a mode yet
   if (!hasShownSelector) {
-    return <ViewModeSelector onSelectMode={handleViewModeSelect} />;
+    return <ViewModeSelector onSelectMode={handleViewModeSelect} onOpenProfile={() => {}} />;
   }
 
   // Show list view if user selected list mode
@@ -181,6 +201,8 @@ const Index = () => {
         onExpandedChange={setIsAssistantExpanded}
         onEventClick={handleEventClickFromAI}
       />
+
+
     </div>
   );
 };

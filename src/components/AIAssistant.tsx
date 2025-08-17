@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Send, Bot, X, ChevronUp, ChevronDown, Key, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { callOpenRouterAPI, hasApiKey, OpenRouterMessage } from '@/lib/api';
+import { mockEvents } from '@/lib/events';
+import ApiKeyConfig from './ApiKeyConfig';
 
 interface Message {
   id: string;
@@ -32,6 +35,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showApiKeyConfig, setShowApiKeyConfig] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<OpenRouterMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
@@ -55,122 +60,21 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ isOpen, onToggle, onEventHigh
     }
   }, [isOpen]);
 
-  const generateAIResponse = (userInput: string): { response: string; highlightIds: string[] } => {
-    const inputLower = userInput.toLowerCase();
-    
-    if (inputLower.includes('bored') || inputLower.includes('tonight') || inputLower.includes('fun') || inputLower.includes('do')) {
-      return {
-        response: `Got it, you're looking for some fun tonight 🎉 Here are a few options:
-
-🎶 **[Jazz Night at Central Club](event:1)**
-Live performance with local artists
-*Click to see details*
-
-🎬 **[Open-air Movie Night](event:3)**
-Classic films under the stars
-*Click to see details*
-
-🍔 **[Street Food Festival](event:4)**
-Food trucks from around the world
-*Click to see details*
-
-Want me to show these on the map and highlight them?`,
-        highlightIds: ['1', '3', '4']
-      };
-    } else if (inputLower.includes('jazz') || inputLower.includes('music') || inputLower.includes('concert')) {
-      return {
-        response: `Perfect, you're into music tonight 🎶 Here's what's happening:
-
-🎵 **[Rooftop Jazz Night](event:1)**
-Live band, great atmosphere, starts 8 PM
-*Click to see details*
-
-🎼 **[Classical Concert](event:2)**
-Symphony orchestra performance
-*Click to see details*
-
-🎸 **[Live Rock Show](event:5)**
-Local bands, energetic crowd
-*Click to see details*
-
-Want me to show these on the map and highlight them?`,
-        highlightIds: ['1', '2', '5']
-      };
-    } else if (inputLower.includes('food') || inputLower.includes('eat') || inputLower.includes('hungry') || inputLower.includes('restaurant')) {
-      return {
-        response: `Sounds like you're hungry! 🍽️ Here are some great food events:
-
-🍕 **[Food Truck Festival](event:4)**
-International cuisine, live music
-*Click to see details*
-
-🍜 **[Night Market](event:7)**
-Street food vendors, local specialties
-*Click to see details*
-
-🥘 **[Cooking Workshop](event:8)**
-Learn to make authentic dishes
-*Click to see details*
-
-Want me to show these on the map and highlight them?`,
-        highlightIds: ['4', '7', '8']
-      };
-    } else if (inputLower.includes('art') || inputLower.includes('gallery') || inputLower.includes('creative') || inputLower.includes('culture')) {
-      return {
-        response: `Great taste in culture! 🎨 Check out these artistic events:
-
-🖼️ **[Art Gallery Opening](event:3)**
-Contemporary digital art collection
-*Click to see details*
-
-🎭 **[Theater Performance](event:9)**
-Local drama group presents classic play
-*Click to see details*
-
-📸 **[Photography Exhibition](event:10)**
-Street photography showcase
-*Click to see details*
-
-Want me to show these on the map and highlight them?`,
-        highlightIds: ['3', '9', '10']
-      };
-    } else if (inputLower.includes('tech') || inputLower.includes('meetup') || inputLower.includes('network') || inputLower.includes('startup')) {
-      return {
-        response: `Perfect for networking! 💻 Here are some tech events:
-
-🚀 **[Startup Pitch Night](event:6)**
-Local entrepreneurs present ideas
-*Click to see details*
-
-💡 **[Tech Meetup](event:11)**
-JavaScript developers gathering
-*Click to see details*
-
-🤖 **[AI Workshop](event:12)**
-Learn about machine learning
-*Click to see details*
-
-Want me to show these on the map and highlight them?`,
-        highlightIds: ['6', '11', '12']
-      };
-    } else {
-      return {
-        response: `I can help you find events based on what you're interested in! Just tell me what you're in the mood for - like "I'm bored tonight", "I like jazz", or "looking for food events".
-
-Here are some popular options right now:
-
-🎵 **[Jazz Night](event:1)** - Live music tonight
-🍔 **[Food Festival](event:4)** - Street food from around the world
-🎨 **[Art Gallery](event:3)** - New contemporary exhibition
-
-Want me to show these on the map?`,
-        highlightIds: ['1', '4', '3']
-      };
+  // Check if API key is configured when component mounts
+  useEffect(() => {
+    if (!hasApiKey()) {
+      setShowApiKeyConfig(true);
     }
-  };
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
+
+    // Check if API key is configured
+    if (!hasApiKey()) {
+      setShowApiKeyConfig(true);
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -183,26 +87,50 @@ Want me to show these on the map?`,
     setInput('');
     setIsTyping(true);
 
-    // Simulate AI thinking time
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      // Call the OpenRouter API
+      const { response, highlightIds } = await callOpenRouterAPI(
+        userMessage.text,
+        mockEvents,
+        conversationHistory
+      );
 
-    const { response, highlightIds } = generateAIResponse(userMessage.text);
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: response,
+        isUser: false,
+        timestamp: new Date(),
+        highlightIds,
+        showInteractiveButtons: true
+      };
 
-    const aiMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      text: response,
-      isUser: false,
-      timestamp: new Date(),
-      highlightIds,
-      showInteractiveButtons: true
-    };
+      setMessages(prev => [...prev, aiMessage]);
 
-    setMessages(prev => [...prev, aiMessage]);
-    setIsTyping(false);
+      // Update conversation history for context
+      setConversationHistory(prev => [
+        ...prev,
+        { role: 'user', content: userMessage.text },
+        { role: 'assistant', content: response }
+      ]);
 
-    // Highlight events on map
-    if (highlightIds.length > 0) {
-      onEventHighlight(highlightIds);
+      // Highlight events on map
+      if (highlightIds.length > 0) {
+        onEventHighlight(highlightIds);
+      }
+    } catch (error) {
+      console.error('AI Assistant Error:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or check your API key configuration.`,
+        isUser: false,
+        timestamp: new Date(),
+        showInteractiveButtons: false
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -232,6 +160,14 @@ Want me to show these on the map?`,
     // Trigger the event detail modal and close the AI assistant
     onEventClick?.(eventId);
     onToggle(); // Close the AI assistant modal
+  };
+
+  const handleApiKeySet = () => {
+    setShowApiKeyConfig(false);
+    // Focus back to input after API key is set
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   };
 
   const renderMessageWithLinks = (text: string) => {
@@ -286,6 +222,14 @@ Want me to show these on the map?`,
 
   return (
     <>
+      {/* API Key Configuration Modal */}
+      {showApiKeyConfig && (
+        <ApiKeyConfig
+          onClose={() => setShowApiKeyConfig(false)}
+          onApiKeySet={handleApiKeySet}
+        />
+      )}
+
       {/* Background Blur Overlay */}
       {isOpen && (
         <div 
@@ -310,15 +254,34 @@ Want me to show these on the map?`,
                 <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
               </div>
               <h3 className="text-base sm:text-lg font-semibold text-foreground">AI Assistant</h3>
+              {!hasApiKey() && (
+                <div className="flex items-center gap-1 text-xs text-yellow-500">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>API Key Required</span>
+                </div>
+              )}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggle}
-              className="text-muted-foreground hover:text-foreground p-2"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {!hasApiKey() && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowApiKeyConfig(true)}
+                  className="text-xs px-2 py-1 border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10"
+                >
+                  <Key className="w-3 h-3 mr-1" />
+                  Setup
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggle}
+                className="text-muted-foreground hover:text-foreground p-2"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Messages */}
@@ -393,13 +356,13 @@ Want me to show these on the map?`,
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask me about events or people nearby..."
+                placeholder={hasApiKey() ? "Ask me about events or people nearby..." : "Configure API key to start chatting..."}
                 className="flex-1 bg-secondary/50 border-white/20 text-foreground placeholder:text-muted-foreground text-sm sm:text-base"
-                disabled={isTyping}
+                disabled={isTyping || !hasApiKey()}
               />
               <Button
                 onClick={handleSend}
-                disabled={!input.trim() || isTyping}
+                disabled={!input.trim() || isTyping || !hasApiKey()}
                 className="bg-gradient-primary hover:bg-gradient-primary/90 text-primary-foreground px-4 sm:px-6 min-w-[44px] sm:min-w-[48px]"
               >
                 <Send className="w-4 h-4" />
@@ -407,18 +370,20 @@ Want me to show these on the map?`,
             </div>
             
             {/* Hints */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-              {["I'm bored tonight", "I like jazz", "Looking for food", "Tech meetups"].map((hint) => (
-                <button
-                  key={hint}
-                  onClick={() => handleQuickAction(hint)}
-                  disabled={isTyping}
-                  className="flex-shrink-0 px-3 py-1.5 text-xs bg-secondary/30 text-muted-foreground rounded-full border border-white/10 hover:bg-secondary/50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap min-h-[32px]"
-                >
-                  {hint}
-                </button>
-              ))}
-            </div>
+            {hasApiKey() && (
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {["I'm bored tonight", "I like jazz", "Looking for food", "Tech meetups"].map((hint) => (
+                  <button
+                    key={hint}
+                    onClick={() => handleQuickAction(hint)}
+                    disabled={isTyping}
+                    className="flex-shrink-0 px-3 py-1.5 text-xs bg-secondary/30 text-muted-foreground rounded-full border border-white/10 hover:bg-secondary/50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap min-h-[32px]"
+                  >
+                    {hint}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
