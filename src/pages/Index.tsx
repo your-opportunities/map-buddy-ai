@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bot, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Map, { Event } from '@/components/Map';
@@ -6,14 +6,25 @@ import EventDetail from '@/components/EventDetail';
 import AIAssistant from '@/components/AIAssistant';
 import SearchMode from '@/components/SearchMode';
 import TokenInput from '@/components/TokenInput';
+import { getEventById } from '@/lib/events';
 
 const Index = () => {
   const [mapboxToken, setMapboxToken] = useState<string>('');
+  const [isTokenLoaded, setIsTokenLoaded] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [isAssistantExpanded, setIsAssistantExpanded] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [highlightedEvents, setHighlightedEvents] = useState<string[]>([]);
+
+  // Load token from localStorage on component mount
+  useEffect(() => {
+    const savedToken = localStorage.getItem('mapboxToken');
+    if (savedToken) {
+      setMapboxToken(savedToken);
+    }
+    setIsTokenLoaded(true);
+  }, []);
 
   const handleEventSelect = (event: Event) => {
     setSelectedEvent(event);
@@ -33,19 +44,40 @@ const Index = () => {
 
   const handleTokenSubmit = (token: string) => {
     setMapboxToken(token);
+    // Save token to localStorage for persistence
+    localStorage.setItem('mapboxToken', token);
   };
 
   const handleEventHighlight = (eventIds: string[]) => {
     setHighlightedEvents(eventIds);
-    // Clear highlights after 5 seconds
+    // Clear highlights after 8 seconds to give users more time to see the blinking effect
     setTimeout(() => {
       setHighlightedEvents([]);
-    }, 5000);
+    }, 8000);
   };
 
-  // Show token input if no token is provided
-  if (!mapboxToken) {
+  const handleEventClickFromAI = (eventId: string) => {
+    const event = getEventById(eventId);
+    if (event) {
+      setSelectedEvent(event);
+    }
+  };
+
+  // Show token input if no token is provided and token loading is complete
+  if (!mapboxToken && isTokenLoaded) {
     return <TokenInput onTokenSubmit={handleTokenSubmit} />;
+  }
+
+  // Show loading state while checking for saved token
+  if (!isTokenLoaded) {
+    return (
+      <div className="h-screen w-full bg-background flex items-center justify-center">
+        <div className="bg-gradient-glass backdrop-blur-md rounded-2xl p-8 text-center border border-white/10">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-foreground">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -59,7 +91,7 @@ const Index = () => {
 
       {/* Floating Action Buttons - hide when AI assistant is expanded */}
       {!isAssistantExpanded && (
-        <div className="fixed bottom-20 right-6 z-50 flex flex-col gap-3">
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
           <Button
             onClick={handleToggleSearch}
             className="bg-gradient-secondary hover:bg-gradient-secondary/90 text-primary-foreground rounded-full p-4 shadow-glow"
@@ -94,6 +126,7 @@ const Index = () => {
         onToggle={handleToggleAssistant}
         onEventHighlight={handleEventHighlight}
         onExpandedChange={setIsAssistantExpanded}
+        onEventClick={handleEventClickFromAI}
       />
     </div>
   );

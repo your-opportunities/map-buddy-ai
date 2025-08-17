@@ -114,9 +114,9 @@ const SearchMode: React.FC<SearchModeProps> = ({ isOpen, onClose, onEventSelect 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background animate-fade-in">
+    <div className="fixed inset-0 z-50 bg-background animate-fade-in flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-primary rounded-xl">
             <Search className="w-5 h-5 text-primary-foreground" />
@@ -134,7 +134,7 @@ const SearchMode: React.FC<SearchModeProps> = ({ isOpen, onClose, onEventSelect 
       </div>
 
       {/* Search & Filters */}
-      <div className="p-4 space-y-4 border-b border-white/10">
+      <div className="p-4 space-y-4 border-b border-white/10 flex-shrink-0">
         <div className="flex gap-2">
           <Input
             value={searchQuery}
@@ -175,8 +175,8 @@ const SearchMode: React.FC<SearchModeProps> = ({ isOpen, onClose, onEventSelect 
       </div>
 
       {/* Results */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-3">
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="p-4 space-y-3">
           {filteredEvents.length > 0 ? (
             filteredEvents.map(event => (
               <div
